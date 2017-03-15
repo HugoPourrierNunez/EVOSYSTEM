@@ -6,8 +6,8 @@ using System.Collections.Generic;
 
 public class Fourmis
 {
-    int initEnergy = 10;
-    int foodEnergy = 7;
+    int initEnergy = 1;
+    int foodEnergy = 6;
     int energyConsum =  1;
     int w = 32;
     int h = 32;
@@ -247,7 +247,7 @@ public class Fourmis
         //int ind1 = (Random.Range(f.fDNA.getSize()/2, f.fDNA.getSize()));
         //int ind1 = (f.fDNA.getSize()-1);
         // int ind2 = (Random.Range(0, f1.getDNA().getSize()));
-        int ind2 = (Random.Range(0, f1.getDNA().getSize()/2));
+        int ind2 = (Random.Range(0, f1.getDNA().getSize()));
         f.fDNA.setDnaAt(ind1,(f1.fDNA.getDnaAt(ind2).clone()));
         f.energy=initEnergy;
 
@@ -509,8 +509,8 @@ public class pgen : MonoBehaviour {
     public GameObject fourmi;
     int nbPopulation = 500;
     int nbSelect = 50;
-    float mutateLuck = 90;
-    int nbGeneration = 30;
+    float mutateLuck = 70;
+    int nbGeneration = 40;
     int i = 0;
     int frame = 0;
 
@@ -563,11 +563,11 @@ public class pgen : MonoBehaviour {
         List<Fourmis> l = new List<Fourmis>();
        
 
-        for(int i=0;i<20;i++)
+        for(int i=0;i<0;i++)
         {
             l.Add(new Fourmis(selectedList[i].getDNA().clone()));
         }
-        for (int i = 20; i < nbPopulation; i++)
+        for (int i = 0; i < nbPopulation; i++)
         {
             l.Add(selectedList[Random.Range(0, nbSelect)].crossOver(selectedList[Random.Range(0, nbSelect)]));
             
@@ -603,7 +603,11 @@ public class pgen : MonoBehaviour {
 
 
     void Start () {
-        
+
+        //Random.InitState(3);        // Seed fonctionne pour 9 gene
+
+        //Random.InitState(2);
+
         for(int i=0;i<32;i++)
         {
             for (int j = 0; j < 32; j++)
@@ -645,7 +649,7 @@ public class pgen : MonoBehaviour {
         
 
 
-        pF = populationFourmis;
+       pF = populationFourmis;
         /*
         DNA f214 = new DNA("if");
         DNA f215 = new DNA("move");
@@ -706,7 +710,12 @@ public class pgen : MonoBehaviour {
 
         pF.Add(new Fourmis(f214));
         pF[0].fullProg();
+
         */
+       
+
+
+
     }
 
     void Update()
