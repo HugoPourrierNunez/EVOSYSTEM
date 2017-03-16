@@ -466,6 +466,10 @@ public class Fourmis
         return listAction;
     }
     
+    public float getBetterScore()
+    {
+        return score + ((float)score) / getDNAsize() *0.01f;
+    }
 }
 
 
@@ -634,7 +638,7 @@ public class pgen : MonoBehaviour {
         {
             for(int j=0;j<nbPopulation-i;j++)
             {
-                if(populationFourmis[i].getSco()>populationFourmis[j].getSco())
+                if(populationFourmis[i].getBetterScore()>populationFourmis[j].getBetterScore())
                 {
                     Fourmis tmp = populationFourmis[j];
                     populationFourmis[j] = populationFourmis[i];
