@@ -12,7 +12,7 @@ public class globalFlocking : MonoBehaviour {
 
     public static int tankSize = 5;
 
-    static int numBoids = 10;
+    static int numBoids = 100;
     public static GameObject[] allBoids = new GameObject[numBoids];
     public static Vector3 goalPos = Vector3.zero;
 

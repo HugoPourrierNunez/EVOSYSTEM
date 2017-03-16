@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class flocking : MonoBehaviour {
 
@@ -10,12 +11,24 @@ public class flocking : MonoBehaviour {
     Vector3 averagePosition;
     float neighbourDistance = 3.0f;
 
+    [SerializeField]
+    GameObject obj;
+
+    Matrix4x4[] matrix;
+
+    [SerializeField]
+    MeshFilter myMeshFilter;
+
+    [SerializeField]
+    Material myMaterial;
+
     bool turning = false;
 
 	// Use this for initialization
 	void Start () {
         speed = Random.Range(0.5f, 1);
-	}
+        matrix = new Matrix4x4[2] { obj.transform.localToWorldMatrix, this.transform.localToWorldMatrix };
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -30,6 +43,7 @@ public class flocking : MonoBehaviour {
 
         if (turning)
         {
+            // On indique ici Vector3.zero car o n suppose que le centre de la scène se trouve en (0,0,0)
             Vector3 direction = Vector3.zero - transform.position;
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), rotationSpeed * Time.deltaTime);
 
@@ -38,11 +52,14 @@ public class flocking : MonoBehaviour {
         else
         {
             if (Random.Range(0, 5) < 1)
+            {
                 ApplyRules();
+            }
         }
-        
         transform.Translate(0, 0, Time.deltaTime * speed);
-	}
+       // Graphics.DrawMesh(myMeshFilter.mesh, transform.worldToLocalMatrix, );
+        Graphics.DrawMeshInstanced(myMeshFilter.mesh, 0, myMaterial, matrix, matrix.Length, null, ShadowCastingMode.On, true, 0, null);
+    }
 
     void ApplyRules()
     {
