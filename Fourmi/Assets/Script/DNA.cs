@@ -27,6 +27,12 @@ public class DNA
         childDNA = c;
     }
     
+    //public DNA(DNA A)
+    //{
+    //    data = A.data;
+    //    child
+    //}
+
     public int getSize()
     {
         if (childDNA == null)
@@ -73,12 +79,76 @@ public class DNA
     {
         return this;
     }
-
+    /*
     public void setDnaAt(int i, DNA d)
     {
         DNA r = getDnaAt(i);
         r.data = d.data;
-        r.childDNA = d.childDNA;
+        r.childDNA = null;
+        //r.childDNA = d.childDNA;
+
+        /*Debug.Log(d.childDNA.Length);
+            r.childDNA = new DNA[d.childDNA.Length];
+        
+
+        if(d.childDNA!=null)
+        {
+            r.childDNA = new DNA[d.childDNA.Length];
+            for (int j = 0; j < r.childDNA.Length; j++)
+        {
+            //r.childdna[j] = new dna();
+
+            r.childDNA[j] = d.childDNA[j].clone();
+        }
+        }
+        //r = d.clone();
+
+
+    }*/
+
+    public void setDnaAt(int i, DNA d)
+        {
+            if (i == 0)
+            {
+
+            
+                data = d.data;
+                childDNA = null;
+            //r.childDNA = d.childDNA;
+        
+             //r.childDNA = new DNA[d.childDNA.Length];
+
+
+            if(d.childDNA!=null)
+            {
+                childDNA = new DNA[d.childDNA.Length];
+                for (int j = 0; j < d.childDNA.Length; j++)
+                {
+                //r.childdna[j] = new dna();
+
+                childDNA[j] = d.childDNA[j].clone();
+                }
+            }
+            }
+        else
+        {
+            int a = 0;
+            int b = 0;
+
+            for (int j = 0; j < childDNA.Length; j++)
+            {
+                if (childDNA[j].getSize() + b + 1 > i)
+                {
+                    a = j;
+                    break;
+                }
+
+                b += childDNA[j].getSize();
+            }
+
+            i = i - b - 1;
+            childDNA[a].setDnaAt(i,d);
+        }
     }
 
     public void setChild(DNA[] d)
@@ -132,24 +202,24 @@ public class DNA
                 case "if":
 
                     DNA[] c = { new DNA(label[Random.Range(1, 4)]), new DNA(label[Random.Range(1, 4)]) };
-                    
+
                     setChild(c);
                     break;
-                
+
                 case "prog2":
                     DNA[] c1 = { new DNA(label[Random.Range(1, 4)]), new DNA(label[Random.Range(1, 4)]) };
-                    
+
                     setChild(c1);
                     break;
                 case "prog3":
                     DNA[] c2 = { new DNA(label[Random.Range(1, 4)]), new DNA(label[Random.Range(1, 4)]), new DNA(label[Random.Range(1, 4)]) };
-                    
+
                     setChild(c2);
                     break;
             }
 
         }
-        
+
     }
 
     public DNA[] getChild()
@@ -159,7 +229,7 @@ public class DNA
 
     public DNA clone()
     {
-        
+
         DNA c = new DNA(data);
 
         if (childDNA != null)
@@ -177,3 +247,4 @@ public class DNA
 
 
 }
+ 
