@@ -8,7 +8,7 @@ public class GeneticScript : MonoBehaviour {
     uint populationSize = 10;
 
     [SerializeField]
-    uint numberOfGenerations = 1;
+    uint numberOfGenerations = 100;
 
     [SerializeField]
     MonsterScript monsterPrefab;
@@ -18,6 +18,9 @@ public class GeneticScript : MonoBehaviour {
 
     [SerializeField]
     float randomPercent = .05f;
+
+    [SerializeField]
+    float mutatePercent = .05f;
 
     private uint nbMonsterDown=0;
 
@@ -44,6 +47,7 @@ public class GeneticScript : MonoBehaviour {
         {
             MonsterScript m = Instantiate(monsterPrefab, Vector3.right * (i - nb) * 15, Quaternion.identity);
             //MonsterScript m = Instantiate(monsterPrefab);
+            m.start();
             m.setGeniticScript(this);
             m.randomInit();
             monsters.Add(m);
@@ -64,49 +68,53 @@ public class GeneticScript : MonoBehaviour {
     void selection()
     {
         //select best and some random
-
+        int maxIndice=-1;
+        float max=-100;
         //sort from best to worst
-        sortedMonsters.Clear();
         for (int i = 0; i < monsters.Count; i++)
         {
-            MonsterScript m = monsters[i];
-            int j;
-            for (j = 0; j < sortedMonsters.Count && sortedMonsters[j].getCenterBone().transform.position.z > m.getCenterBone().transform.position.z; j++) ;
-            sortedMonsters.Insert(j, m);
+            monsters[i].reinit();
+
+            if (monsters[i].getScore() >= max)
+            {
+                maxIndice = i;
+                max = monsters[i].getScore();
+            }
+            if (monsters[i].getScore() >= scoreMax)
+            {
+                scoreMax = monsters[i].getScore();
+                Debug.Log("scoreMax=" + scoreMax + " at generation " + (numberOfGenerations + 1) + " last best score = " + monsters[0].getScore());
+            }
         }
-        if (sortedMonsters[0].getScore() >= scoreMax)
-        {
-            scoreMax = sortedMonsters[0].getScore();
-        }
-        Debug.Log("scoreMax=" + scoreMax + " at generation " + (numberOfGenerations + 1) + " last best score = "+ sortedMonsters[0].getScore());
 
         int nbSelected = Mathf.RoundToInt(populationSize * percentToSelect);
-        int nbRandom = Mathf.RoundToInt(populationSize * percentToSelect);
-        if ((nbRandom + nbSelected) % 2 == 1)
-            nbRandom++;
-
-        selectedMonsters.Clear();
-        //selection a percent of best
-        for(int i=0;i<nbSelected;i++)
-        {
-            selectedMonsters.Add(sortedMonsters[i]);
-            sortedMonsters.RemoveAt(i);
-        }
-        //selection a percent in random
-        for(int i=0;i<nbRandom;i++)
-        {
-            int nb = Random.Range(0, sortedMonsters.Count);
-            selectedMonsters.Add(sortedMonsters[nb]);
-            sortedMonsters.RemoveAt(nb);
-        }
-        //add unusedmonster to deletedmonsters list in order to use them later
-        deletedMonsters.Clear();
-        for (int i = 0; i < sortedMonsters.Count; i++)
-        {
-            sortedMonsters[i].reinit();
-            deletedMonsters.Add(sortedMonsters[i]);
-        }
         
+        selectedMonsters.Clear();
+        selectedMonsters.Add(monsters[maxIndice]);
+        monsters.RemoveAt(maxIndice);
+        //selection a percent of best
+        for(int i=0;i<nbSelected-1;i++)
+        {
+            int nb1 = Random.Range(0, monsters.Count);
+            int nb2;
+            do
+            {
+                nb2 = Random.Range(0, monsters.Count);
+            } while (nb2 == nb1);
+
+            if(monsters[nb1].getScore()>monsters[nb2].getScore() && Random.Range(0.0f, 1.0f)<randomPercent)
+            {
+                selectedMonsters.Add(monsters[nb1]);
+                monsters.RemoveAt(nb1);
+            }
+            else
+            {
+                selectedMonsters.Add(monsters[nb2]);
+                monsters.RemoveAt(nb2);
+
+            }
+            
+        }
 
         reproduction();
     }
@@ -114,8 +122,7 @@ public class GeneticScript : MonoBehaviour {
     void reproduction()
     {
         //cross over caracteristics
-        int nb = 0;
-        while(nb<selectedMonsters.Count)
+        while(selectedMonsters.Count>0)
         {
             int nb1 = Random.Range(0, selectedMonsters.Count);
             int nb2;
@@ -123,36 +130,22 @@ public class GeneticScript : MonoBehaviour {
             {
                 nb2 = Random.Range(0, selectedMonsters.Count);
             } while (nb1 == nb2);
-            
-            MonsterScript.reproduction(selectedMonsters[nb1], selectedMonsters[nb2]);
-
-            nb += 2;
-        }
-
-        multiplication();
-    }
-
-    void multiplication()
-    {
-        monsters.Clear();
-        //in order to have always the same population size
-        while (deletedMonsters.Count>0)
-        {
-            for(int i=0; i<selectedMonsters.Count && deletedMonsters.Count > 0; i++)
+            if(selectedMonsters[nb1].getScore()> selectedMonsters[nb2].getScore())
             {
-                int nb = 0;
-                MonsterScript m = deletedMonsters[nb];
-
-                selectedMonsters[i].copyInto(m);
-
-                monsters.Add(m);
-                deletedMonsters.RemoveAt(nb);
+                selectedMonsters[nb2].reproduction(selectedMonsters[nb1]);
             }
-        }
-        monsters.AddRange(selectedMonsters);
+            else
+                selectedMonsters[nb1].reproduction(selectedMonsters[nb2]);
 
-        
-        selectedMonsters.Clear();
+            MonsterScript m2 = selectedMonsters[nb2];
+
+            monsters.Add(selectedMonsters[nb1]);
+            monsters.Add(selectedMonsters[nb2]);
+            //Attention !!!!!!!!!
+            selectedMonsters.Remove(selectedMonsters[nb1]);
+            selectedMonsters.Remove(m2);
+        }
+
         mutation();
     }
 
@@ -161,8 +154,9 @@ public class GeneticScript : MonoBehaviour {
         //mutate some caracteristics depending on how far they goes
         for (int i = 0; i < monsters.Count; i++)
         {
-            monsters[i].reinit();
-            monsters[i].mutation();
+            float nb = Random.Range(0.0f, 1.0f);
+            if (nb<mutatePercent)
+                monsters[i].mutation();
         }
         runTest();
     }

@@ -50,51 +50,25 @@ public class MonsterScript : MonoBehaviour {
         geneticScript = gs;
     }
 
-    public static void reproduction(MonsterScript m1,MonsterScript m2)
+    public void reproduction(MonsterScript m)
     {
-        if(m1.bonesByLevel.Count==m2.bonesByLevel.Count)
+        //FAIRE MOYENNE ?
+        for (int i = 0; i < bones.Count; i++)
         {
-            int nb1 = Random.Range(0, m1.bonesByLevel.Count);
-            int nb2;
-            do
-            {
-                nb2 = Random.Range(0, m1.bonesByLevel.Count);
-            } while (nb1 == nb2);
-
-
-            List<BonesScript> levelM1 = m1.bonesByLevel[nb1];
-            List<BonesScript> levelM2 = m1.bonesByLevel[nb1];
-            if(levelM1.Count==levelM2.Count)
-            {
-                for (int i = 0; i < levelM1.Count;i++)
-                {
-                    BonesScript bone1 = levelM1[i];
-                    BonesScript bone2 = levelM2[i];
-
-                    float tmp = bone1.getMinAngle();
-                    bone1.setMinAngle(bone2.getMinAngle());
-                    bone2.setMinAngle(tmp);
-
-                    tmp = bone1.getMaxAngle();
-                    bone1.setMaxAngle(bone2.getMaxAngle());
-                    bone2.setMaxAngle(tmp);
-
-                    tmp = bone1.getRotationVelocity();
-                    bone1.setRotationVelocity(bone2.getRotationVelocity());
-                    bone2.setRotationVelocity(tmp);
-
-                }
-            }
+            bones[i].average(m.bones[i]);
         }
     }
 
     public void mutation()
     {
-        for (int i = 0; i < bones.Count; i++)
+        int nb = Random.Range(0, bonesByLevel.Count);
+        bonesByLevel[nb][0].mutation(score);
+        for (int i = 1; i < bonesByLevel[nb].Count; i++)
         {
-            bones[i].mutation(score);
+            bonesByLevel[nb][0].copyInto(bonesByLevel[nb][i]);
+            if (i % 2 == 1)
+                bonesByLevel[nb][i].inversCoef();
         }
-        centerBone.mutation(score);
     }
 
     public void isDown()
@@ -107,14 +81,21 @@ public class MonsterScript : MonoBehaviour {
 
     public void randomInit()
     {
-        for(int i=0;i<bones.Count;i++)
+        for (int j=0; j<bonesByLevel.Count;j++)
         {
-            bones[i].randomInit();
+            bonesByLevel[j][0].randomInit();
+            for (int i = 1; i < bonesByLevel[j].Count; i++)
+            {
+                bonesByLevel[j][0].copyInto(bonesByLevel[j][i]);
+                if (i % 2 == 1)
+                    bonesByLevel[j][i].inversCoef();
+            }
         }
+        
     }
 
     // Use this for initialization
-    void Start () {
+    public void start () {
         organizeBoneByLevel();
         centerBone.init();
         for (int i = 0; i < bones.Count; i++)
@@ -123,9 +104,6 @@ public class MonsterScript : MonoBehaviour {
         }
         centerBone.saveOriginalPositionAndRotation();
         collisionBone.setMonsterScript(this);
-        /*bones[1].addRotationX(30);
-        bones[2].addRotationX(-60);
-        bones[3].addRotationX(20);*/
     }
 
     public void reinit()
