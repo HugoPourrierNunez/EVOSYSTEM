@@ -6,9 +6,10 @@ using System.Collections.Generic;
 
 public class Fourmis
 {
-    int initEnergy = 10;
-    int foodEnergy = 9;
+    int initEnergy = 30;
+    int foodEnergy = 6;
     int energyConsum =  1;
+    int limitEnergy = 60;
     int w = 32;
     int h = 32;
     int[,] map =
@@ -374,7 +375,6 @@ public class Fourmis
 
                         energy += foodEnergy;
                         
-
                         score++;
                         map[Mod(posX, h), Mod((posY + 1), w)] = 0;
                         cpt++;
@@ -421,7 +421,12 @@ public class Fourmis
                     posY = Mod(posY, w);
                     break;
             }
-        
+        if (energy >= limitEnergy)
+        {
+            energy = limitEnergy;
+        }
+
+
         energy = energy - energyConsum;
 
 
@@ -468,7 +473,7 @@ public class Fourmis
     
     public float getBetterScore()
     {
-        return score + ((float)score) / getDNAsize() *0.01f;
+        return score +((float)score) / getDNAsize() ;
     }
 }
 
@@ -518,7 +523,7 @@ public class pgen : MonoBehaviour {
     public GameObject mapTile1;
     public GameObject fourmi;
     int nbPopulation = 500;
-    int nbSelect = 50;
+    int nbSelect =  50;
     float mutateLuck = 90;
     int nbGeneration = 50;
     int i = 0;
@@ -634,15 +639,31 @@ public class pgen : MonoBehaviour {
 
     void sortList(Fourmis[] populationFourmis)
     {
-        for(int i=0;i<nbPopulation;i++)
+        for(int i= nbPopulation - 1; i>0;i--)
         {
-            for(int j=0;j<nbPopulation-i;j++)
+            for(int j=0;j<i;j++)
             {
-                if(populationFourmis[i].getBetterScore()>populationFourmis[j].getBetterScore())
+                if(populationFourmis[j].getBetterScore() < populationFourmis[j+1].getBetterScore())
                 {
-                    Fourmis tmp = populationFourmis[j];
-                    populationFourmis[j] = populationFourmis[i];
-                    populationFourmis[i] = tmp;
+                    Fourmis tmp = populationFourmis[j+1];
+                    populationFourmis[j+1] = populationFourmis[j];
+                    populationFourmis[j] = tmp;
+                }
+            }
+        }
+    }
+
+    void sortLastList(Fourmis[] populationFourmis)
+    {
+        for (int i = nbPopulation - 1; i > 0; i--)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                if (populationFourmis[j].getScore() < populationFourmis[j + 1].getScore())
+                {
+                    Fourmis tmp = populationFourmis[j + 1];
+                    populationFourmis[j + 1] = populationFourmis[j];
+                    populationFourmis[j] = tmp;
                 }
             }
         }
@@ -661,13 +682,13 @@ public class pgen : MonoBehaviour {
     Fourmis[] crossOver(Fourmis[] populationFourmis,Fourmis[] selectedList)
     {
         Fourmis [] l = new Fourmis[nbPopulation];
-        int select = 0;
+        
 
-        for (int i = 0; i < select; i++)
+        for (int i = 0; i < 10; i++)
         {
             l[i]=(new Fourmis(selectedList[i].getDNA().clone()));
         }
-        for (int i = select; i < nbPopulation; i++)
+        for (int i = 10; i < nbPopulation; i++)
         {
             l[i] = (selectedList[Random.Range(0, nbSelect)].crossOver(selectedList[Random.Range(0, nbSelect)]));
         }
@@ -689,7 +710,7 @@ public class pgen : MonoBehaviour {
     void mutate(Fourmis[] l)
     {
 
-        for (int i = 0; i < nbPopulation; i++)
+        for (int i = 10; i < nbPopulation; i++)
         {
 
             if (Random.Range(1, 100) < mutateLuck)
@@ -703,7 +724,7 @@ public class pgen : MonoBehaviour {
 
         //Random.InitState(3);        // Seed fonctionne pour 9 gene
 
-        //Random.InitState(3);
+        //Random.InitState(1);
 
         for(int i=0;i<32;i++)
         {
@@ -731,17 +752,18 @@ public class pgen : MonoBehaviour {
         
          for (int i = 0; i < nbGeneration; i++)
          {
-             populationFourmis=crossOver(populationFourmis, selection(populationFourmis));
+             sortList(populationFourmis);
+            populationFourmis =crossOver(populationFourmis, selection(populationFourmis));
              mutate(populationFourmis);
              runPopulation(populationFourmis);
-            sortList(populationFourmis);
+            
         }
 
-         sortList(populationFourmis);
+         sortLastList(populationFourmis);
          for(int i=0;i<nbPopulation;i++)
          {
 
-            Debug.Log(populationFourmis[i].getDNAsize());
+          //  Debug.Log(populationFourmis[i].getScore());
          }
          
 
