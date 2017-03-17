@@ -13,7 +13,7 @@ public class globalFlocking : MonoBehaviour {
     // taille de la zone de deplacement des boids sur les 3 dimensions (un cube en fait)
     public static int tankSize = 5;
 
-    public static Vector3 origin = new Vector3(20, 12.6f, -5);
+    public static Vector3 origin = new Vector3(36.4f, -6.7f, 66.3f);
     static int numBoids = 60;
     public static GameObject[] allBoids = new GameObject[numBoids];
     public static Vector3 goalPos = origin;

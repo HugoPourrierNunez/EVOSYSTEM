@@ -522,103 +522,26 @@ public class pgen : MonoBehaviour {
     public GameObject mapTile;
     public GameObject mapTile1;
     public GameObject fourmi;
+    public GameObject fourmiQueue1;
+    public GameObject fourmiQueue2;
+    public Material Tile1Text;
+
     int nbPopulation = 500;
     int nbSelect =  50;
     float mutateLuck = 90;
-    int nbGeneration = 50;
+    int nbGeneration = 10;
     int i = 0;
     int frame = 0;
+    Vector3 lastPos1;
+    Vector3 lastPos2;
 
+    GameObject[,] Tiles = new GameObject[32,32];
 
     Fourmis[] pF= new Fourmis[500];
 
-    /*List<Fourmis> initiatePopulation()
-    {
-        List<Fourmis> populationFourmis = new List<Fourmis>();
-
-        for (int i = 0; i < nbPopulation; i++)
-        {
-
-            Fourmis a = new Fourmis(new DNA(label[Random.Range(0, 6)]));
-
-            a.getDNA().createRandom(6);
-            a.fullProg();
-            populationFourmis.Add(a);
-
-        }
-
-        return populationFourmis;
-
-    }
-    */
-
-        /*
-    void sortList(ref List<Fourmis> populationFourmis)
-    {
-        populationFourmis.Sort((x, y) => y.getSco().CompareTo(x.getSco()));
-        
-    }
-
-    List<Fourmis> selection(List<Fourmis> populationFourmis)
-    {
-        
-        List<Fourmis> f = new List<Fourmis>();
-        for(int i=0; i<nbSelect; i++)
-        {
-            f.Add(new Fourmis(populationFourmis[i].getDNA().clone()));
-        }
+     
           
-
-            return f;
-
-
-    }
-
-    List<Fourmis> crossOver(List<Fourmis> l1,List<Fourmis> selectedList)
-    {
-        
-        List<Fourmis> l = new List<Fourmis>();
-        int select = 0;
-
-        for(int i=0;i<select;i++)
-        {
-            l.Add(new Fourmis(selectedList[i].getDNA().clone()));
-        }
-        for (int i = select; i < nbPopulation; i++)
-        {
-            l.Add(selectedList[Random.Range(0, nbSelect)].crossOver(selectedList[Random.Range(0, nbSelect)]));
-            
-        }
-
-        sortList(ref l);
-
-        return l;
-
-    }
-
-    void mutate(ref List<Fourmis> l)
-    {
-        
-        for(int i=0;i<nbPopulation;i++)
-        {
-
-            if (Random.Range(1, 100) < mutateLuck)
-            {
-                l[i] = l[i].mutate();
-            }
-        }
-    }
-
-    void runPopulation(List<Fourmis> populationFourmis)
-    {
-        for(int i =0; i<nbPopulation;i++)
-        {
-            
-            populationFourmis[i].fullProg();
-        }
-    }
-    */
-
+    
     Fourmis[] initiatePopulation()
     {
         Fourmis[] populationFourmis = new Fourmis[nbPopulation];
@@ -734,11 +657,13 @@ public class pgen : MonoBehaviour {
                 {
                     GameObject newTile = Instantiate(mapTile);
                     newTile.transform.position = new Vector3(i, j);
+                    Tiles[i, j] = newTile;
                 }
                 else
                 {
                     GameObject newTile = Instantiate(mapTile1);
                     newTile.transform.position = new Vector3(i, j);
+                    Tiles[i, j] = newTile;
                 }
             }
 
@@ -856,9 +781,39 @@ public class pgen : MonoBehaviour {
 
         if (i < pF[0].getPos().Count && frame%1==0 )
         {
-            fourmi.transform.position = new Vector3(pF[0].getPos()[i].x, pF[0].getPos()[i].y, -2);
+            if(i == 0)
+            {
+                lastPos1 = new Vector3(pF[0].getPos()[i].x, pF[0].getPos()[i].y, -1);
+                lastPos2 = new Vector3(pF[0].getPos()[i].x, pF[0].getPos()[i].y, -1);
+            }
+            else if(i == 1)
+            {
+                lastPos1 = new Vector3(pF[0].getPos()[i-1].x, pF[0].getPos()[i-1].y, -1);
+                lastPos2 = new Vector3(pF[0].getPos()[i-1].x, pF[0].getPos()[i-1].y, -1);
+            }
+            else
+            {
+                lastPos1 = new Vector3(pF[0].getPos()[i - 1].x, pF[0].getPos()[i - 1].y, -1);
+                lastPos2 = new Vector3(pF[0].getPos()[i - 2].x, pF[0].getPos()[i - 2].y, -1);
+            }
 
-            Instantiate(fourmi);
+            fourmi.transform.position = new Vector3(pF[0].getPos()[i].x, pF[0].getPos()[i].y, -1);
+            fourmiQueue1.transform.position = lastPos1;
+            fourmiQueue2.transform.position = lastPos2;
+
+            if (map[(int)fourmi.transform.position.x, (int)fourmi.transform.position.y] == 1)
+            {
+               // Tiles[(int)fourmi.transform.position.x, (int)fourmi.transform.position.y].GetComponent<Renderer>().material.color = Color.blue;
+                Tiles[(int)fourmi.transform.position.x, (int)fourmi.transform.position.y].GetComponent<Renderer>().material = Tile1Text;
+            }
+
+            if(i == 0)
+            {
+                fourmi.SetActive(true);
+                fourmiQueue1.SetActive(true);
+                fourmiQueue2.SetActive(true);
+            }
+            //Instantiate(fourmi);
             //Debug.Log("asa");
             i++;
         }
