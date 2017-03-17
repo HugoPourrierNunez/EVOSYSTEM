@@ -25,9 +25,16 @@ public class MonsterScript : MonoBehaviour {
 
     bool move = false;
 
+    [SerializeField]
+    float coefForce;
+
     public void setMove(bool m)
     {
         move = m;
+        if(move)
+        {
+            myRigidBody.AddForce(transform.forward* coefForce, ForceMode.Acceleration);
+        }
     }
 
     public BonesScript getCenterBone()
@@ -66,8 +73,6 @@ public class MonsterScript : MonoBehaviour {
         for (int i = 1; i < bonesByLevel[nb].Count; i++)
         {
             bonesByLevel[nb][0].copyInto(bonesByLevel[nb][i]);
-            if (i % 2 == 1)
-                bonesByLevel[nb][i].inversCoef();
         }
     }
 
@@ -83,15 +88,39 @@ public class MonsterScript : MonoBehaviour {
     {
         for (int j=0; j<bonesByLevel.Count;j++)
         {
+            int nb = Random.Range(0, 2);
             bonesByLevel[j][0].randomInit();
+            if (nb == 0)
+            {
+                bonesByLevel[j][0].addRotationX(bonesByLevel[j][0].getMinAngle());
+                bonesByLevel[j][0].setCoef(1);
+            }
+            else
+            {
+                bonesByLevel[j][0].addRotationX(bonesByLevel[j][0].getMaxAngle());
+                bonesByLevel[j][0].setCoef(-1);
+            }
+            bonesByLevel[j][0].saveRandomInfo();
             for (int i = 1; i < bonesByLevel[j].Count; i++)
             {
                 bonesByLevel[j][0].copyInto(bonesByLevel[j][i]);
                 if (i % 2 == 1)
-                    bonesByLevel[j][i].inversCoef();
+                {
+                    if (nb == 0)
+                    {
+                        bonesByLevel[j][i].addRotationX(-bonesByLevel[j][i].getMinAngle()+ bonesByLevel[j][i].getMaxAngle());
+                        bonesByLevel[j][i].setCoef(-1);
+                    }
+                    else
+                    {
+                        bonesByLevel[j][i].addRotationX(-bonesByLevel[j][i].getMaxAngle() + bonesByLevel[j][i].getMinAngle());
+                        bonesByLevel[j][i].setCoef(1);
+                    }
+                }
+                bonesByLevel[j][i].saveRandomInfo();
+
             }
         }
-        
     }
 
     // Use this for initialization
@@ -109,13 +138,18 @@ public class MonsterScript : MonoBehaviour {
     public void reinit()
     {
         myRigidBody.velocity = Vector3.zero;
+        bool kin = myRigidBody.isKinematic;
         myRigidBody.isKinematic = true;
         for (int i = 0; i < bones.Count; i++)
         {
             bones[i].reinit();
         }
+        for (int i = 0; i < bones.Count; i++)
+        {
+            bones[i].restaureFirstRandomData();
+        }
         centerBone.reinit();
-        myRigidBody.isKinematic = false;
+        myRigidBody.isKinematic = kin;
     }
 
     private void organizeBoneByLevel()

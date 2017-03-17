@@ -16,8 +16,13 @@ public class GeneticScript : MonoBehaviour {
     [SerializeField]
     float percentToSelect = .3f;
 
+    private float startTime;
+
     [SerializeField]
     float randomPercent = .05f;
+
+    [SerializeField]
+    bool showBestScore = true;
 
     [SerializeField]
     float mutatePercent = .05f;
@@ -25,6 +30,7 @@ public class GeneticScript : MonoBehaviour {
     private uint nbMonsterDown=0;
 
     private float scoreMax = 0;
+    private uint generationScoreMax=0;
 
     private List<MonsterScript> monsters = new List<MonsterScript>();
 
@@ -58,9 +64,11 @@ public class GeneticScript : MonoBehaviour {
 
     void runTest()
     {
+        startTime = Time.time;
         nbMonsterDown = 0;
         for (int i=0; i<monsters.Count;i++)
         {
+            monsters[i].reinit();
             monsters[i].setMove(true);
         }
     }
@@ -73,17 +81,11 @@ public class GeneticScript : MonoBehaviour {
         //sort from best to worst
         for (int i = 0; i < monsters.Count; i++)
         {
-            monsters[i].reinit();
 
             if (monsters[i].getScore() >= max)
             {
                 maxIndice = i;
                 max = monsters[i].getScore();
-            }
-            if (monsters[i].getScore() >= scoreMax)
-            {
-                scoreMax = monsters[i].getScore();
-                Debug.Log("scoreMax=" + scoreMax + " at generation " + (numberOfGenerations + 1) + " last best score = " + monsters[0].getScore());
             }
         }
 
@@ -161,33 +163,59 @@ public class GeneticScript : MonoBehaviour {
         runTest();
     }
 
-
+    void showBest()
+    {
+        float max = -1;
+        for (int i = 0; i < monsters.Count; i++)
+        {
+            if (monsters[i].getScore() >= scoreMax)
+            {
+                generationScoreMax = numberOfGenerations;
+                scoreMax = monsters[i].getScore();
+            }
+            if(monsters[i].getScore()>max)
+            {
+                max = monsters[i].getScore();
+            }
+        }
+        Debug.Log("scoreMax=" + scoreMax + " at generation " + generationScoreMax + " last best score = " + max);
+    }
     
 
     public void monsterDown()
     {
         nbMonsterDown++;
-        if (nbMonsterDown==monsters.Count)
+        if (nbMonsterDown == monsters.Count)
         {
             //is call when all monsters are down
+
             endGeneration();
+            //runTest();
         }
     }
 
     void endGeneration()
     {
+        if (showBestScore)
+            showBest();
+
         numberOfGenerations--;
-        /*float maxZ = -1;
-        for(int i=0;i<monsters.Count;i++)
-        {
-            float nb = monsters[i].getCenterBone().gameObject.transform.position.z;
-            if (maxZ < nb)
-                maxZ = nb;
-        }
-        Debug.Log("Distance maximum : " + maxZ);*/
         if (numberOfGenerations>0)
         {
             selection();
         }
+    }
+
+    void Update()
+    {
+        if (Time.time - startTime > 30)
+        {
+            for (int i = 0; i < monsters.Count; i++)
+            {
+                monsters[i].isDown();
+            }
+            endGeneration();
+        }
+        
     }
 }

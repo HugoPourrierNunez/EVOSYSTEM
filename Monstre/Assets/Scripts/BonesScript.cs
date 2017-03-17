@@ -5,7 +5,8 @@ using UnityEngine;
 public class BonesScript : MonoBehaviour {
 
     static float rotationVelocityMin = .01f;
-    static float rotationVelocityMax = 10f;
+    static float rotationVelocityMax = 2f;
+    static float centerAngleContraint = 0.01f;
 
     static float decallageMin = 10f;
     static float decallageMax = 100f;
@@ -30,6 +31,8 @@ public class BonesScript : MonoBehaviour {
 
     private float coef = 1;
 
+    private float savCoef;
+
     private BonesScript boneIn;
 
     private MonsterScript monsterScript=null;
@@ -43,8 +46,6 @@ public class BonesScript : MonoBehaviour {
 
     [SerializeField]
     float rotationVelocity = 1;
-
-    private float rotationVelocityBack;
 
 
     [SerializeField]
@@ -86,23 +87,25 @@ public class BonesScript : MonoBehaviour {
         float coef2 = 1 / (.3f * score + 1);
         if (nb==0)
         {
-            minAngle += Random.Range(minAngleConstraint, 0f)*coef2;
+            setMinAngle(minAngle + Random.Range(-180, 180)*coef2);
+
             if (minAngle < minAngleConstraint)
-                minAngle = minAngleConstraint;
+                setMinAngle(minAngleConstraint);
         }
         else if(nb==1)
         {
-            maxAngle += Random.Range(0f, maxAngleConstraint) * coef2;
-            if (maxAngle < maxAngleConstraint)
-                maxAngle = maxAngleConstraint;
+            setMaxAngle(maxAngle + Random.Range(-180, 180) * coef2);
+            if (maxAngle > maxAngleConstraint)
+                setMaxAngle(maxAngleConstraint);
         }
         else
         {
-            rotationVelocity += Random.Range(rotationVelocityMin, rotationVelocityMax) * coef2;
+            
+            setRotationVelocity(rotationVelocity + Random.Range(rotationVelocityMin, rotationVelocityMax) * coef2);
             if (rotationVelocity < rotationVelocityMin)
-                maxAngle = rotationVelocityMin;
+                setRotationVelocity(rotationVelocityMin);
             else if (rotationVelocity > rotationVelocityMax)
-                rotationVelocity = rotationVelocityMax;
+                setRotationVelocity(rotationVelocityMax);
         }
         
         
@@ -114,8 +117,11 @@ public class BonesScript : MonoBehaviour {
 
         b.setMaxAngle(getMaxAngle());
 
-        b.rotationVelocity = rotationVelocity;
-        b.rotationVelocityBack = rotationVelocityBack;
+        b.setRotationVelocity(rotationVelocity);
+        //b.rotationVelocityBack = rotationVelocityBack;
+
+        if (effectiveRotation != 0)
+            b.addRotationX(effectiveRotation);
 
         b.setDecallage(getDecallage());
         b.coef = coef;
@@ -129,7 +135,6 @@ public class BonesScript : MonoBehaviour {
     public void setRotationVelocity(float v)
     {
         rotationVelocity = v;
-        rotationVelocityBack = -(rotationVelocity * maxAngle / minAngle);
     }
 
     public void saveOriginalPositionAndRotation()
@@ -139,14 +144,34 @@ public class BonesScript : MonoBehaviour {
         originalRotation = transform.rotation;
     }
 
+    public void saveRandomInfo()
+    {
+        savCoef = coef;
+    }
+
     public void reinit()
     {
-        if(minAngle<minAngleConstraint || minAngle>0)
+        /*if(minAngle<minAngleConstraint || minAngle>-centerAngleContraint)
             Debug.Log("minAngle="+minAngle+ "      minAngleConstraint=" + minAngleConstraint);
-        if (maxAngle > maxAngleConstraint ||maxAngle<0)
-            Debug.Log("maxAngle=" + maxAngle + "      maxAngleConstraint=" + maxAngleConstraint);
+        if (maxAngle > maxAngleConstraint ||maxAngle< centerAngleContraint)
+            Debug.Log("maxAngle=" + maxAngle + "      maxAngleConstraint=" + maxAngleConstraint);*/
         transform.position = originalPosition;
         transform.rotation = originalRotation ;
+        
+    }
+
+    public void restaureFirstRandomData()
+    {
+        effectiveRotation = 0;
+        coef = savCoef;
+        if (coef == -1)
+        {
+            addRotationX(getMaxAngle());
+        }
+        else
+        {
+            addRotationX(getMinAngle());
+        }
     }
 
 
@@ -166,10 +191,12 @@ public class BonesScript : MonoBehaviour {
 
     public void randomInit()
     {
-        setRotationVelocity(Random.Range(rotationVelocityMin, rotationVelocityMax));
+        effectiveRotation = 0;
+        string n = gameObject.name;
         decallage = Random.Range(decallageMin, decallageMax);
-        minAngle = Random.Range(minAngleConstraint, 0f);
-        maxAngle = Random.Range(0f, maxAngleConstraint);
+        minAngle = Random.Range(minAngleConstraint, -centerAngleContraint);
+        maxAngle = Random.Range(centerAngleContraint, maxAngleConstraint);
+        setRotationVelocity(Random.Range(rotationVelocityMin, rotationVelocityMax));
     }
 
     public void init()
@@ -186,7 +213,6 @@ public class BonesScript : MonoBehaviour {
         maxAngle = (maxAngle + b.maxAngle) / 2;
         minAngle = (minAngle + b.minAngle) / 2;
         setRotationVelocity((rotationVelocity+b.rotationVelocity)/2);
-        rotationVelocity = (rotationVelocity + b.rotationVelocity) / 2;
     }
 
     // Update is called once per frame
@@ -245,25 +271,16 @@ public class BonesScript : MonoBehaviour {
         }
     }
 
+    public void setCoef(float c)
+    {
+        coef = c;
+    }
+
     public void rotate()
     {
-        if(maxAngle!=minAngle)
+        if(maxAngle!=minAngle && rotationVelocity!=0)
         {
-            if (effectiveRotation >= maxAngle)
-            {
-                coef = -coef;
-                effectiveRotation = maxAngle;
-            }
-            else if(effectiveRotation <= minAngle)
-            {
-                coef = -coef;
-                effectiveRotation = minAngle;
-            }
-            if(effectiveRotation>0)
-                addRotationX(coef * rotationVelocity);
-            else
-                addRotationX(coef * rotationVelocityBack);
-            
+            addRotationX(coef * rotationVelocity);
         }
     }
 
@@ -272,6 +289,16 @@ public class BonesScript : MonoBehaviour {
         if(rotationX!=0)
         {
             effectiveRotation += rotationX;
+            if (effectiveRotation > maxAngle)
+            {
+                coef = -coef;
+                effectiveRotation = maxAngle;
+            }
+            else if (effectiveRotation < minAngle)
+            {
+                coef = -coef;
+                effectiveRotation = minAngle;
+            }
             transform.Rotate(rotationX, 0, 0);
             for (int i = 0; i < bonesOut.Count; i++)
             {
