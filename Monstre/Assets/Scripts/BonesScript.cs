@@ -84,19 +84,33 @@ public class BonesScript : MonoBehaviour {
     public void mutation(float score)
     {
         int nb = Random.Range(0, 3);
+        if (score < 0) score = 0;
         float coef2 = 1 / (.3f * score + 1);
         if (nb==0)
         {
             setMinAngle(minAngle + Random.Range(-180, 180)*coef2);
 
             if (minAngle < minAngleConstraint)
+            {
                 setMinAngle(minAngleConstraint);
+            }
+            else if (minAngle > centerAngleContraint)
+            {
+                setMinAngle(centerAngleContraint);
+            }
+                    
         }
         else if(nb==1)
         {
             setMaxAngle(maxAngle + Random.Range(-180, 180) * coef2);
-            if (maxAngle > maxAngleConstraint)
+            if (maxAngle < centerAngleContraint)
+            {
+                setMaxAngle(centerAngleContraint);
+            }
+            else if (maxAngle > maxAngleConstraint)
+            {
                 setMaxAngle(maxAngleConstraint);
+            }
         }
         else
         {
